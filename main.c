@@ -1,9 +1,15 @@
+#ifdef __linux
+#include <raylib/raylib.h>
+#include <raylib/raymath.h>
+#else
 #include <raylib.h>
 #include <raymath.h>
+#endif
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
-void update_positions(float * thetas, float * radii,float * zs, Matrix * buffer, const int num_stars){
+#define NUM_STARS 32000
+void update_positions(float * thetas, float * radii,float * zs, Matrix * buffer, int num_stars){
     for(int i =0; i<num_stars; i++){
         float radius = radii[i];
         float theta = thetas[i];
@@ -13,17 +19,18 @@ void update_positions(float * thetas, float * radii,float * zs, Matrix * buffer,
         buffer[i] = MatrixTranslate(radius*cos(theta),radius*sin(theta), zs[i]);
     }
 }
+
 int main(void){
-    const int num_stars = 32000;
-    Matrix stars_trans[num_stars] = {};
-    float stars_thetas[num_stars] = {};
-    float stars_radii[num_stars] = {};
-    float stars_z[num_stars] = {};
-    unsigned int occupied[num_stars/32] = {};
+ 
+    Matrix stars_trans[NUM_STARS] = {};
+    float stars_thetas[NUM_STARS] = {};
+    float stars_radii[NUM_STARS] = {};
+    float stars_z[NUM_STARS] = {};
+    unsigned int occupied[NUM_STARS/32] = {};
     int true_count = 0;
     int false_count = 0;
     srand(time(0));
-    for(int i =0; i<num_stars; i++){
+    for(int i =0; i<NUM_STARS; i++){
         float radius = (rand()%3200+(1));
         radius *= radius;
         radius /= 13653;
@@ -55,7 +62,7 @@ int main(void){
     m.shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(m.shader, "viewPos");
     m.shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(m.shader, "instanceTransform");
     int buffer = GetShaderLocation(m.shader, "occupied");
-    SetShaderValueV(m.shader, buffer, occupied, SHADER_UNIFORM_INT, num_stars/32);
+    SetShaderValueV(m.shader, buffer, occupied, SHADER_UNIFORM_INT, NUM_STARS/32);
     m.maps[MATERIAL_MAP_DIFFUSE].color = RED;
     Mesh mesh  = GenMeshSphere(3, 5, 5);
     Camera3D cam = {.fovy = 80, .position = {0,0,-100}, .projection = CAMERA_PERSPECTIVE, .target = {0,0,-1}, .up = {0,1,0}};
@@ -65,10 +72,10 @@ int main(void){
         BeginDrawing();
         ClearBackground(BLACK);
         BeginMode3D(cam);
-        DrawMeshInstanced(mesh, m, stars_trans, num_stars);
+        DrawMeshInstanced(mesh, m, stars_trans, NUM_STARS);
         EndMode3D();
         DrawFPS(940, 60);
-        update_positions(stars_thetas, stars_radii, stars_z,stars_trans, num_stars);
+        update_positions(stars_thetas, stars_radii, stars_z,stars_trans, NUM_STARS);
         EndDrawing();
     } 
     return 0;
